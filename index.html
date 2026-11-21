@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Smart Cache Replacement</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #38bdf8;
+}
+
+.subtitle {
+    text-align: center;
+    color: #b8c5d6;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.card h3 {
+    color: #94a3b8;
+}
+
+.card p {
+    font-size: 28px;
+    color: #38bdf8;
+    font-weight: bold;
+}
+
+.panel {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+input, select, button {
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    margin: 5px;
+}
+
+input {
+    width: 130px;
+}
+
+button {
+    background: #0284c7;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0369a1;
+}
+
+.cache-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.item {
+    background: #334155;
+    padding: 18px;
+    border-radius: 10px;
+    min-width: 120px;
+    text-align: center;
+    border: 2px solid #38bdf8;
+}
+
+.item small {
+    display: block;
+    margin-top: 8px;
+    color: #cbd5e1;
+}
+
+.log {
+    background: #0f172a;
+    padding: 15px;
+    height: 180px;
+    overflow-y: auto;
+    border-radius: 8px;
+    color: #a7f3d0;
+}
+
+.progress {
+    background: #334155;
+    height: 14px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#bar {
+    height: 100%;
+    width: 0%;
+    background: #22c55e;
+}
+
+@media(max-width: 600px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>AI-Based Smart Cache Replacement System</h1>
+
+<p class="subtitle">
+Machine Learning Based Cache Memory Simulation
+</p>
+
+<div class="dashboard">
+
+<div class="card">
+<h3>Cache Hits</h3>
+<p id="hits">0</p>
+</div>
+
+<div class="card">
+<h3>Cache Misses</h3>
+<p id="misses">0</p>
+</div>
+
+<div class="card">
+<h3>Hit Ratio</h3>
+<p id="ratio">0%</p>
+</div>
+
+</div>
+
+<div class="panel">
+
+<h2>Cache Control</h2>
+
+<label>Enter Data Item:</label>
+
+<input type="text" id="itemInput"
+placeholder="Example: A">
+
+<button onclick="accessCache()">Access Cache</button>
+
+<button onclick="resetCache()">Reset</button>
+
+<br><br>
+
+<label>Cache Capacity:</label>
+
+<select id="capacity">
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+</select>
+
+</div>
+
+<div class="panel">
+
+<h2>Cache Memory</h2>
+
+<div class="cache-items" id="cache">
+</div>
+
+</div>
+
+<div class="panel">
+
+<h2>AI Prediction</h2>
+
+<p id="prediction">
+Waiting for data access...
+</p>
+
+</div>
+
+<div class="panel">
+
+<h2>Cache Hit Ratio</h2>
+
+<div class="progress">
+<div id="bar"></div>
+</div>
+
+<p id="ratioText">0% Hit Ratio</p>
+
+</div>
+
+<div class="panel">
+
+<h2>Activity Log</h2>
+
+<div class="log" id="log">
+System Ready...
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let cache = [];
+let hits = 0;
+let misses = 0;
+let clock = 0;
+
+// AI-inspired replacement score
+function predictScore(item) {
+
+    let recency = clock - item.lastAccess;
+    let frequency = item.frequency;
+
+    // Higher score means more useful
+    return (frequency * 2) - recency;
+}
+
+// Access cache
+function accessCache() {
+
+    let input = document.getElementById("itemInput");
+    let itemName = input.value.trim().toUpperCase();
+
+    if (itemName === "") {
+        alert("Please enter a data item");
+        return;
+    }
+
+    clock++;
+
+    let existing = cache.find(
+        item => item.name === itemName
+    );
+
+    if (existing) {
+
+        hits++;
+
+        existing.frequency++;
+        existing.lastAccess = clock;
+
+        addLog(itemName + " - CACHE HIT");
+
+        document.getElementById("prediction").innerText =
+            "AI Prediction: Frequently accessed item detected.";
+
+    } else {
+
+        misses++;
+
+        addLog(itemName + " - CACHE MISS");
+
+        if (cache.length >=
+            Number(document.getElementById("capacity").value)) {
+
+            let victim = cache.reduce((a, b) =>
+                predictScore(a) < predictScore(b) ? a : b
+            );
+
+            document.getElementById("prediction").innerText =
+                "AI Prediction: Replacing " + victim.name +
+                " because it has the lowest usefulness score.";
+
+            addLog("AI Replacement: " + victim.name);
+
+            cache = cache.filter(
+                item => item.name !== victim.name
+            );
+        }
+
+        cache.push({
+            name: itemName,
+            frequency: 1,
+            lastAccess: clock
+        });
+
+        if (cache.length === 1) {
+            document.getElementById("prediction").innerText =
+                "New item inserted into cache.";
+        }
+    }
+
+    input.value = "";
+
+    updateDashboard();
+    displayCache();
+}
+
+// Display cache items
+function displayCache() {
+
+    let container = document.getElementById("cache");
+
+    container.innerHTML = "";
+
+    cache.forEach(item => {
+
+        let div = document.createElement("div");
+
+        div.className = "item";
+
+        let name = document.createElement("strong");
+        name.textContent = item.name;
+
+        let frequency = document.createElement("small");
+        frequency.textContent =
+            "Frequency: " + item.frequency;
+
+        let score = document.createElement("small");
+        score.textContent =
+            "AI Score: " + predictScore(item);
+
+        div.append(name, frequency, score);
+
+        container.appendChild(div);
+    });
+}
+
+// Update statistics
+function updateDashboard() {
+
+    let total = hits + misses;
+
+    let ratio = total > 0
+        ? (hits / total) * 100
+        : 0;
+
+    document.getElementById("hits").innerText = hits;
+
+    document.getElementById("misses").innerText = misses;
+
+    document.getElementById("ratio").innerText =
+        ratio.toFixed(2) + "%";
+
+    document.getElementById("bar").style.width =
+        ratio + "%";
+
+    document.getElementById("ratioText").innerText =
+        ratio.toFixed(2) + "% Hit Ratio";
+}
+
+// Activity log
+function addLog(message) {
+
+    let log = document.getElementById("log");
+
+    let entry = document.createElement("div");
+    entry.textContent = ">> " + message;
+
+    log.prepend(entry);
+}
+
+// Reset system
+function resetCache() {
+
+    cache = [];
+    hits = 0;
+    misses = 0;
+    clock = 0;
+
+    document.getElementById("prediction").innerText =
+        "Waiting for data access...";
+
+    document.getElementById("log").textContent =
+        "System Reset...";
+
+    updateDashboard();
+    displayCache();
+}
+
+</script>
+
+</body>
+</html>
